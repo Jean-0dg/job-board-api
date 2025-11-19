@@ -49,13 +49,28 @@ router.get('/:id', async (req, res) => {
 
 //Create a new job
 router.post('/', authenticateToken, async (req, res) => {
+    
+    // User Authorization
+    const user_id = req.user.userId;
+    if (!user_id) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     //Testing 
-    console.log('Decoded JWT payload:', req.user.userId);
+    console.log('Decoded JWT payload:', user_id);
 
     // Input validation
-    const { title, description, location, salary_min, salary_max } = req.body;
-    const user_id = req.user.userId;
+    const validationResult = jobSchema.safeParse(req.body);
+    if (!validationResult.success) {
+        let errorMsg = 'Invalid input';
+        if (validationResult.error && validationResult.error.errors) {
+            errorMsg = validationResult.error.errors.map(e => e.message).join(', ');
+        }
+        return res.status(400).json({ error: errorMsg });
+    }
+    const { title, description, location, salary_min, salary_max } = validationResult.data;
 
+    // Create the job
     try {
         const result = await db.query(
             'INSERT INTO jobs (title, description, location, salary_min, salary_max, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
