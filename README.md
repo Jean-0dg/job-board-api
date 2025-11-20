@@ -2,6 +2,7 @@
 
 A RESTful API for a job board. 
 Backend for a job board-type website. 
+Display of technologies I learned.
 
 ## Features
 - User authentication (sign up, login, JWT tokens)
