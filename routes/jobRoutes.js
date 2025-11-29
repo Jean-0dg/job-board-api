@@ -10,26 +10,39 @@ const jobSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().min(1, 'Description is required'),
     location: z.string().min(1, 'Location is required'),
-    salary_min: z.number().min(0, 'Salary must be a positive number'),
-    salary_max: z.number().min(0, 'Salary must be a positive number'),
+    salary_min: z.coerce.number().min(0, 'Salary must be a positive number'),
+    salary_max: z.coerce.number().min(0, 'Salary must be a positive number'),
+}).refine((data) => data.salary_max >= data.salary_min, {
+    message: "Maximum salary must be at least equal to minimum salary",
+    path: ["salary_max"],
 });
 
 //Get all jobs
 router.get('/', async (req, res) => {
-    const { search, page = 1, limit = 10 } = req.query;
+    const { search } = req.query;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
     const offset = (page - 1) * limit;
+    
     try {
-        let query = 'SELECT * FROM jobs';
-        let params = [];
+        let baseQuery = 'SELECT * FROM jobs';
+        const params = [];
+        let paramIndex = 1;
+
         if (search) {
-            query += ' WHERE title ILIKE $1 OR description ILIKE $1';
-            params = [`%${search}%`];
+            baseQuery += ` WHERE title ILIKE $${paramIndex} OR description ILIKE $${paramIndex}`;
+            params.push(`%${search}%`);
+            paramIndex += 1;
         }
-        query += ` LIMIT ${limit} OFFSET ${offset}`;
-        const result = await db.query(query, params);
+
+        baseQuery += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        params.push(limit, offset);
+
+        const result = await db.query(baseQuery, params);
         res.status(200).json(result.rows);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error fetching jobs:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -43,7 +56,8 @@ router.get('/:id', async (req, res) => {
         }
         res.status(200).json(result.rows[0]);
     } catch (error) {
-        res.status(500).json({ error: error.message});
+        console.error('Error fetching job:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -55,9 +69,6 @@ router.post('/', authenticateToken, async (req, res) => {
     if (!user_id) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
-
-    //Testing 
-    console.log('Decoded JWT payload:', user_id);
 
     // Input validation
     const validationResult = jobSchema.safeParse(req.body);
@@ -78,7 +89,8 @@ router.post('/', authenticateToken, async (req, res) => {
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error creating job:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -115,7 +127,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
         );
         res.status(200).json(updatedJob.rows[0]);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error updating job:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -138,7 +151,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         await db.query('DELETE FROM jobs WHERE id = $1', [id]);
         res.status(204).send();
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error deleting job:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 
 });

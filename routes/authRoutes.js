@@ -32,18 +32,15 @@ router.post('/register', async (req, res) => {
     const { email, password, name } = result.data;
 
     try {
-        // Password hash
-        const password_hash = await bcrypt.hash(password, 10);  // 10 salt rounds for security
-        // Store the user
+        const password_hash = await bcrypt.hash(password, 10);
         const userResult = await db.query(
             'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name',
             [email, password_hash, name]
         );
-        // Return user info 
         res.status(201).json(userResult.rows[0]);
     } catch (err) {
-        // Duplicate emails handler
-        if (err.code === '23505') { // unique violation
+        console.error('Registration error:', err);
+        if (err.code === '23505') { 
             return res.status(400).json({ error: 'Email already taken' });
         }
         res.status(500).json({ error: 'Registration failed' });
@@ -71,8 +68,6 @@ router.post('/login', async (req, res) => {
         if (!user) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-
-        // Password validation
         const passwordMatch = await bcrypt.compare(password, user.password_hash);
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Invalid email or password' });
@@ -80,10 +75,9 @@ router.post('/login', async (req, res) => {
 
         // JWT token generation
         const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '12h' });
-
-        // Respond with token & user info
         res.status(200).json({ token, user: { id: user.id, email: user.email, name: user.name } });
     } catch (err) {
+        console.error('Login error:', err);
         res.status(500).json({ error: 'Login failed' });
     }
 });
