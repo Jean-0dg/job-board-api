@@ -1,4 +1,4 @@
-ß# Job Board Backend API 
+# Job Board Backend API 
 
 A RESTful API for a job board. 
 Backend for a job board-type website. 
@@ -16,22 +16,49 @@ Display of skillset.
 - Express.js
 - PostgreSQL 
 
-## Setup
-- Clone repo and install dependencies: 
-    - git clone https://github.com/Jean-0dg/job-board-api
-    - cd job-board-api
-    - npm install
-- Set up environment variables:
-    - Create a `.env` file in the root directory:
-        - DATABASE_URL=postgresql://username:password@localhost:5432/job_board_db
-        - JWT_SECRET=your_jwt_secret_key
-        - PORT=3000
-- Set up the database:
-    - psql -U postgres
-    - CREATE DATABASE job_board_db;
-    - Run SQL schema file
-- Start the server: 
-    - npm start 
+## Deployment
+The API is deployed on Render with a Neon PostgreSQL database.
+- **Base URL**: `[INSERT_DEPLOYED_URL_HERE]`
+- **Test Users**:
+    - Admin: `admin@job.ap` / `password123`
+    - Test: `test@job.ap` / `password123`
+
+## Local Development Setup
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Jean-0dg/job-board-api
+   cd job-board-api
+   npm install
+   ```
+
+2. **Environment Variables**
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL=postgresql://username:password@localhost:5432/job_board_db
+   JWT_SECRET=your_jwt_secret_key
+   PORT=3000
+   ```
+
+3. **Database Setup**
+   Ensure PostgreSQL is running, then execute:
+   ```bash
+   # Create database
+   psql -U postgres -c "CREATE DATABASE job_board_db;"
+   
+   # Run schema and seed
+   psql -U postgres -d job_board_db -f schema.sql
+   psql -U postgres -d job_board_db -f seed.sql
+   ```
+
+4. **Start the Server**
+   ```bash
+   # Development (with auto-reload)
+   npm run dev
+   
+   # Production
+   npm start
+   ``` 
+
 
 ## API Endpoints
 
@@ -49,5 +76,4 @@ Display of skillset.
 ## Author
 Jean Ouedraogo - [GitHub]
 
-## Links
 [GitHub]: https://github.com/Jean-0dg

@@ -37,13 +37,13 @@ router.post('/register', async (req, res) => {
             'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name',
             [email, password_hash, name]
         );
-        res.status(201).json(userResult.rows[0]);
+        return res.status(201).json(userResult.rows[0]);
     } catch (err) {
         console.error('Registration error:', err);
         if (err.code === '23505') { 
             return res.status(400).json({ error: 'Email already taken' });
         }
-        res.status(500).json({ error: 'Registration failed' });
+        return res.status(500).json({ error: 'Registration failed' });
     }
 });
 
@@ -75,10 +75,10 @@ router.post('/login', async (req, res) => {
 
         // JWT token generation
         const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '12h' });
-        res.status(200).json({ token, user: { id: user.id, email: user.email, name: user.name } });
+        return res.status(200).json({ token, user: { id: user.id, email: user.email, name: user.name } });
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500).json({ error: 'Login failed' });
+        return res.status(500).json({ error: 'Login failed' });
     }
 });
 

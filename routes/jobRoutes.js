@@ -39,10 +39,10 @@ router.get('/', async (req, res) => {
         params.push(limit, offset);
 
         const result = await db.query(baseQuery, params);
-        res.status(200).json(result.rows);
+        return res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching jobs:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -54,10 +54,10 @@ router.get('/:id', async (req, res) => {
         if (!result.rows.length) {
             return res.status(404).json({ error: 'Job not found' }); 
         }
-        res.status(200).json(result.rows[0]);
+        return res.status(200).json(result.rows[0]);
     } catch (error) {
         console.error('Error fetching job:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -87,10 +87,10 @@ router.post('/', authenticateToken, async (req, res) => {
             'INSERT INTO jobs (title, description, location, salary_min, salary_max, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [title, description, location, salary_min, salary_max, user_id]
         );
-        res.status(201).json(result.rows[0]);
+        return res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creating job:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -125,10 +125,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
             'UPDATE jobs SET title = $1, description = $2, location = $3, salary_min = $4, salary_max = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
             [title, description, location, salary_min, salary_max, id]
         );
-        res.status(200).json(updatedJob.rows[0]);
+        return res.status(200).json(updatedJob.rows[0]);
     } catch (error) {
         console.error('Error updating job:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -149,10 +149,10 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     // Delete the job
     try {
         await db.query('DELETE FROM jobs WHERE id = $1', [id]);
-        res.status(204).send();
+        return res.status(204).send();
     } catch (error) {
         console.error('Error deleting job:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 
 });
