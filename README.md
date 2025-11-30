@@ -138,7 +138,7 @@ Note: the deployed API expects a trailing slash for this endpoint.
     Body:
     ```json
     {
-        "description": "Build and maintain REST APIs using Node.js, Express, and PostgreSQL.",
+        "description": "Build and maintain REST APIs using Node.js, Express, and PostgreSQL."
     }
     ```
 
