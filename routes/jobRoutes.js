@@ -108,8 +108,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
         return res.status(403).json({ error: 'You are not authorized to update this job' });
     } 
 
-    // Input validation
-    const validationResult = jobSchema.safeParse(job);
+    // Input validation (Partial Update)
+    const partialJobSchema = jobSchema.partial();
+    const validationResult = partialJobSchema.safeParse(req.body);
+
     if (!validationResult.success) {
         let errorMsg = 'Invalid input';
         if (validationResult.error && validationResult.error.errors) {
@@ -117,14 +119,22 @@ router.put('/:id', authenticateToken, async (req, res) => {
         }
         return res.status(400).json({ error: errorMsg });
     }
-    const { title, description, location, salary_min, salary_max } = validationResult.data;
+    
+    const updates = validationResult.data;
+    if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: 'No fields to update' });
+    }
 
-    // Update the job
+    // Dynamic SQL generation
     try {
-        const updatedJob = await db.query(
-            'UPDATE jobs SET title = $1, description = $2, location = $3, salary_min = $4, salary_max = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
-            [title, description, location, salary_min, salary_max, id]
-        );
+        const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ');
+        const values = Object.values(updates);
+        
+        // Add updated_at timestamp
+        const query = `UPDATE jobs SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $${values.length + 1} RETURNING *`;
+        const params = [...values, id];
+
+        const updatedJob = await db.query(query, params);
         return res.status(200).json(updatedJob.rows[0]);
     } catch (error) {
         console.error('Error updating job:', error);
