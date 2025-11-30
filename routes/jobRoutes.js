@@ -124,14 +124,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
     if (Object.keys(updates).length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
     }
-
-    // Dynamic SQL generation
     try {
-        const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ');
+        const setFields = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ');
         const values = Object.values(updates);
-        
-        // Add updated_at timestamp
-        const query = `UPDATE jobs SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $${values.length + 1} RETURNING *`;
+
+        const query = `UPDATE jobs SET ${setFields}, updated_at = CURRENT_TIMESTAMP WHERE id = $${values.length + 1} RETURNING *`;
         const params = [...values, id];
 
         const updatedJob = await db.query(query, params);
