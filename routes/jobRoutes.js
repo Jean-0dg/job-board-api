@@ -109,7 +109,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     } 
 
     // Input validation
-    const validationResult = jobSchema.safeParse(req.body);
+    const validationResult = jobSchema.safeParse(job);
     if (!validationResult.success) {
         let errorMsg = 'Invalid input';
         if (validationResult.error && validationResult.error.errors) {
