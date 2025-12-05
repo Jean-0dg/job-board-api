@@ -151,5 +151,6 @@ Note: the deployed API expects a trailing slash for this endpoint.
 
 ## Author
 Jean Ouedraogo - [GitHub]
+contact@jeanouedraogo.dev 
 
 [GitHub]: https://github.com/Jean-0dg
